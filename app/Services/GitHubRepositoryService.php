@@ -84,24 +84,30 @@ class GitHubRepositoryService
 
     private function request(): PendingRequest
     {
-        return Http::baseUrl('https://api.github.com')
+        $request = Http::baseUrl('https://api.github.com')
             ->acceptJson()
             ->withUserAgent('ShipProof/1.0')
             ->timeout(8)
             ->connectTimeout(3);
+
+        $token = config('services.github.token');
+
+        if (is_string($token) && trim($token) !== '') {
+            $request->withToken(trim($token));
+        }
+
+        return $request;
     }
 
     private function ensureSuccessful(int $status, mixed $body): void
     {
-        if ($status === 403 && (string) data_get($body, 'message') !== '') {
+        if ($status === 403 || $status === 429) {
             $message = strtolower((string) data_get($body, 'message'));
 
-            if (str_contains($message, 'rate limit')) {
-                throw new GitHubLookupException('GitHub’s public API rate limit has been reached. Please try again later.');
+            if ($status === 429 || str_contains($message, 'rate limit')) {
+                throw new GitHubLookupException('GitHub’s API rate limit has been reached. Please try again later.');
             }
-        }
 
-        if ($status === 403 || $status === 429) {
             throw new GitHubLookupException('GitHub temporarily limited this request. Please try again later.');
         }
 

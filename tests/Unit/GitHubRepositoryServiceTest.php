@@ -12,6 +12,13 @@ use Tests\TestCase;
 
 class GitHubRepositoryServiceTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config()->set('services.github.token', null);
+    }
+
     public function test_it_normalizes_metadata_languages_and_recent_commits(): void
     {
         Http::fake([
@@ -52,6 +59,29 @@ class GitHubRepositoryServiceTest extends TestCase
 
         Http::assertSent(fn (ClientRequest $request) => $request->hasHeader('User-Agent', 'ShipProof/1.0'));
         Http::assertSent(fn (ClientRequest $request) => str_contains($request->url(), 'per_page=8'));
+        Http::assertSent(fn (ClientRequest $request) => ! $request->hasHeader('Authorization'));
+    }
+
+    public function test_it_sends_a_configured_token_as_a_bearer_header(): void
+    {
+        config()->set('services.github.token', 'test-github-token');
+        $this->fakeSuccessfulLookupResponses();
+
+        app(GitHubRepositoryService::class)->lookup(GitHubRepositoryUrl::from('https://github.com/octo/ship-proof'));
+
+        Http::assertSentCount(3);
+        Http::assertSent(fn (ClientRequest $request) => $request->hasHeader('Authorization', 'Bearer test-github-token'));
+    }
+
+    public function test_it_omits_authorization_when_the_token_is_missing(): void
+    {
+        config()->set('services.github.token', '');
+        $this->fakeSuccessfulLookupResponses();
+
+        app(GitHubRepositoryService::class)->lookup(GitHubRepositoryUrl::from('https://github.com/octo/ship-proof'));
+
+        Http::assertSentCount(3);
+        Http::assertSent(fn (ClientRequest $request) => ! $request->hasHeader('Authorization'));
     }
 
     public function test_a_missing_or_private_repository_gets_a_safe_not_found_message(): void
@@ -81,7 +111,7 @@ class GitHubRepositoryServiceTest extends TestCase
         Http::fake(['api.github.com/repos/octo/ship-proof' => Http::response([], 429)]);
 
         $this->expectException(GitHubLookupException::class);
-        $this->expectExceptionMessage('temporarily limited');
+        $this->expectExceptionMessage('API rate limit has been reached');
 
         app(GitHubRepositoryService::class)->lookup(GitHubRepositoryUrl::from('https://github.com/octo/ship-proof'));
     }
@@ -119,5 +149,18 @@ class GitHubRepositoryServiceTest extends TestCase
             ],
             'author' => ['login' => 'octo'],
         ];
+    }
+
+    private function fakeSuccessfulLookupResponses(): void
+    {
+        Http::fake([
+            'api.github.com/repos/octo/ship-proof' => Http::response([
+                'name' => 'ship-proof',
+                'full_name' => 'octo/ship-proof',
+                'owner' => ['login' => 'octo'],
+            ]),
+            'api.github.com/repos/octo/ship-proof/commits*' => Http::response([]),
+            'api.github.com/repos/octo/ship-proof/languages' => Http::response(['PHP' => 100]),
+        ]);
     }
 }

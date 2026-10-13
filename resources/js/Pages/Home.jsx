@@ -164,9 +164,18 @@ function CaseStudyPreview({ repository, story, onEdit, onExport }) {
         <div>
             <div className="mb-8 flex flex-col gap-4 border-b border-white/[0.09] pb-7 sm:flex-row sm:items-end sm:justify-between">
                 <div><p className="text-[10px] font-semibold tracking-[0.16em] text-lime-300 uppercase">Case study preview · developer-written</p><h2 id="case-study-heading" tabIndex="-1" className="mt-2 text-3xl font-medium tracking-[-0.05em] text-[#f1f2e9] focus:outline-none sm:text-4xl">{story.title}</h2></div>
-                <div className="flex flex-wrap gap-2">
-                    <button type="button" onClick={onEdit} className="inline-flex min-h-10 items-center justify-center rounded-lg border border-white/[0.14] px-4 text-xs font-medium text-[#dce5da] transition hover:border-white/30 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-300">Back to editing</button>
-                    <button type="button" onClick={onExport} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-lime-300 px-4 text-xs font-semibold text-[#10180d] transition hover:bg-lime-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-200">Export Markdown <ArrowUpRight className="h-3.5 w-3.5" /></button>
+                <div className="flex flex-col items-start gap-3 sm:items-end">
+                    <div className="flex flex-wrap gap-2">
+                        <button type="button" onClick={onEdit} className="inline-flex min-h-10 items-center justify-center rounded-lg border border-white/[0.14] px-4 text-xs font-medium text-[#dce5da] transition hover:border-white/30 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-300">Back to editing</button>
+                        <button type="button" onClick={onExport} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-lime-300 px-4 text-xs font-semibold text-[#10180d] transition hover:bg-lime-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-200">Export Markdown <ArrowUpRight className="h-3.5 w-3.5" /></button>
+                    </div>
+                    <div className="max-w-sm text-left sm:text-right">
+                        <button type="button" disabled aria-describedby="public-publish-note" className="inline-flex min-h-9 cursor-not-allowed items-center gap-2 rounded-lg border border-white/[0.1] bg-white/[0.025] px-3 text-xs font-medium text-[#93a198] opacity-75">
+                            Publish a public URL
+                            <span className="rounded-full border border-lime-200/15 bg-lime-200/[0.05] px-2 py-0.5 text-[9px] font-semibold tracking-wide text-lime-200/75">Coming soon</span>
+                        </button>
+                        <p id="public-publish-note" className="mt-1.5 text-[10px] leading-4 text-[#819188]">Public publishing is planned but isn’t available yet.</p>
+                    </div>
                 </div>
             </div>
             <div className="grid gap-12 lg:grid-cols-[minmax(0,1.3fr)_minmax(18rem,0.7fr)] lg:gap-16">
