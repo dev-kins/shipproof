@@ -8,6 +8,22 @@ use Tests\TestCase;
 
 class RepositoryLookupTest extends TestCase
 {
+    public function test_it_generates_https_urls_from_a_forwarded_https_request(): void
+    {
+        $this->withServerVariables([
+            'HTTPS' => 'off',
+            'HTTP_HOST' => 'shipproof.test',
+            'SERVER_PORT' => 80,
+        ])->withHeader('X-Forwarded-Proto', 'https')
+            ->get('/')
+            ->assertOk();
+
+        $generatedUrl = route('repositories.lookup');
+
+        $this->assertSame('https', parse_url($generatedUrl, PHP_URL_SCHEME));
+        $this->assertSame('/repositories/lookup', parse_url($generatedUrl, PHP_URL_PATH));
+    }
+
     public function test_it_rejects_a_non_github_url_without_calling_the_api(): void
     {
         Http::fake();
